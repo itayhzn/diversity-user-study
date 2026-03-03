@@ -29,17 +29,25 @@ function shuffle(array, rng) {
   return result;
 }
 
-export function initializeRandomization(email, prompts) {
+export function initializeRandomization(email, experiments) {
   const seed = hashString(email.toLowerCase().trim());
   const rng = mulberry32(seed);
 
-  const indices = prompts.map((_, i) => i);
-  const promptOrder = shuffle(indices, rng);
+  // Build flat pool of {expId, promptId} entries across all experiments
+  const pool = [];
+  for (const exp of experiments) {
+    for (const prompt of exp.prompts) {
+      pool.push({ expId: exp.id, promptId: prompt.id });
+    }
+  }
+
+  const promptOrder = shuffle(pool, rng);
 
   const sideAssignments = {};
-  for (const idx of promptOrder) {
+  for (const entry of promptOrder) {
+    const key = `${entry.expId}__${entry.promptId}`;
     // false = model[0] on left, true = model[0] on right (swap)
-    sideAssignments[prompts[idx].id] = rng() < 0.5;
+    sideAssignments[key] = rng() < 0.5;
   }
 
   return { seed, promptOrder, sideAssignments };

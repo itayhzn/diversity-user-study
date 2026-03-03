@@ -38,7 +38,7 @@ export function renderLanding() {
     state.sessionId = crypto.randomUUID();
     state.startTime = new Date().toISOString();
 
-    const { seed, promptOrder, sideAssignments } = initializeRandomization(email, state.config.prompts);
+    const { seed, promptOrder, sideAssignments } = initializeRandomization(email, state.config.experiments);
     state.randomizationSeed = seed;
     state.promptOrder = promptOrder;
     state.sideAssignments = sideAssignments;

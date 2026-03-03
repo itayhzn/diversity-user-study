@@ -1,15 +1,16 @@
 import state from '../state.js';
 
 function buildSubmissionData() {
-  const models = state.config.models;
-  const prompts = state.config.prompts;
-
-  const responses = state.promptOrder.map(promptIdx => {
-    const prompt = prompts[promptIdx];
-    const swapped = state.sideAssignments[prompt.id];
+  const responses = state.promptOrder.map(entry => {
+    const { expId, promptId } = entry;
+    const stateKey = `${expId}__${promptId}`;
+    const exp = state.config.experiments.find(e => e.id === expId);
+    const prompt = exp.prompts.find(p => p.id === promptId);
+    const models = exp.models;
+    const swapped = state.sideAssignments[stateKey];
     const leftModel = swapped ? models[1] : models[0];
     const rightModel = swapped ? models[0] : models[1];
-    const promptResponses = state.responses[prompt.id] || {};
+    const promptResponses = state.responses[stateKey] || {};
 
     const ratings = {};
     for (const metric of state.config.metrics) {
@@ -23,7 +24,8 @@ function buildSubmissionData() {
     }
 
     return {
-      prompt_id: prompt.id,
+      experiment_id: expId,
+      prompt_id: promptId,
       prompt_text: prompt.text,
       left_model: leftModel,
       right_model: rightModel,
@@ -32,6 +34,17 @@ function buildSubmissionData() {
     };
   });
 
+  // Build complete column_order covering all experiments × prompts × metrics
+  const column_order = [];
+  for (const exp of state.config.experiments) {
+    for (const prompt of exp.prompts) {
+      for (const metric of state.config.metrics) {
+        column_order.push(`${exp.id}__${prompt.id}__${metric.id}`);
+      }
+      column_order.push(`${exp.id}__${prompt.id}__time_seconds`);
+    }
+  }
+
   return {
     session_id: state.sessionId,
     user_email: state.email,
@@ -39,6 +52,7 @@ function buildSubmissionData() {
     end_time: new Date().toISOString(),
     randomization_seed: state.randomizationSeed,
     prompt_order: state.promptOrder,
+    column_order,
     responses,
   };
 }

@@ -28,6 +28,30 @@
           "images_per_model": 8
         }
       ]
+    },
+    {
+      "id": "cfg2",
+      "models": [
+        "model_A",
+        "model_C"
+      ],
+      "prompts": [
+        {
+          "id": "prompt_00",
+          "text": "A cat sitting on a windowsill",
+          "images_per_model": 8
+        },
+        {
+          "id": "prompt_01",
+          "text": "A futuristic cityscape at sunset",
+          "images_per_model": 8
+        },
+        {
+          "id": "prompt_02",
+          "text": "A cozy coffee shop interior",
+          "images_per_model": 8
+        }
+      ]
     }
   ],
   "metrics": [

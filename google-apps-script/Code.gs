@@ -51,11 +51,28 @@ function doPost(e) {
     var lock = LockService.getScriptLock();
     lock.waitLock(10000);
     try {
-      // Create headers on first submission using column_order for complete schema
-      if (sheet.getLastRow() === 0) {
-        var headers = ['timestamp', 'session_id', 'user_email', 'start_time', 'end_time', 'randomization_seed'];
-        headers = headers.concat(columnOrder);
-        sheet.appendRow(headers);
+      // Create or update headers using column_order for complete schema
+      var headers = ['timestamp', 'session_id', 'user_email', 'start_time', 'end_time', 'randomization_seed']
+        .concat(columnOrder);
+
+      var lastRow = sheet.getLastRow();
+      var headersNeedUpdate = false;
+
+      if (lastRow === 0) {
+        headersNeedUpdate = true;
+      } else if (columnOrder.length > 0) {
+        // Check if row 1 first data column matches expected (detects stale headers)
+        var existingFirstDataHeader = sheet.getRange(1, 7).getValue();
+        headersNeedUpdate = existingFirstDataHeader !== columnOrder[0];
+      }
+
+      if (headersNeedUpdate) {
+        if (lastRow === 0) {
+          sheet.appendRow(headers);
+        } else {
+          // Overwrite row 1 in-place; old data rows 2+ are intentionally left as-is
+          sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        }
       }
 
       sheet.appendRow(row);
